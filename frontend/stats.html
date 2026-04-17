@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StandUp - Statistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+                            400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+                            800: '#115e59', 900: '#134e4a', 950: '#042f2e',
+                        },
+                        accent: {
+                            50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+                            400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce',
+                            800: '#6b21a8', 900: '#581c87', 950: '#3b0764',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-soft { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.02); opacity: 0.9; } }
+        .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
+        .animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+        .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white min-h-screen flex flex-col transition-colors duration-300">
+    <header class="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/20">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <span class="text-xl font-bold tracking-tight">StandUp</span>
+            </div>
+            <nav class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                <button data-page="timer" class="nav-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">Timer</button>
+                <button data-page="stats" class="nav-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">Stats</button>
+                <button data-page="settings" class="nav-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">Settings</button>
+            </nav>
+            <div class="flex items-center gap-2">
+                <button id="theme-toggle" class="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary-500" aria-label="Toggle dark mode">
+                    <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+                <button id="mobile-menu-btn" class="md:hidden p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-fade-in">
+            <div class="px-4 py-3 space-y-1">
+                <button data-page="timer" class="mobile-nav-btn w-full text-left px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Timer</button>
+                <button data-page="stats" class="mobile-nav-btn w-full text-left px-3 py-2 text-sm font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-primary-600 dark:text-primary-400">Stats</button>
+                <button data-page="settings" class="mobile-nav-btn w-full text-left px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Settings</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-8">
+        <div id="loading-state" class="flex flex-col items-center justify-center h-64">
+            <div class="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="mt-4 text-slate-500 dark:text-slate-400">Loading your progress...</p>
+        </div>
+
+        <div id="error-state" class="hidden">
+            <div class="flex flex-col items-center justify-center h-64 text-center">
+                <svg class="w-16 h-16 text-slate-300 dark:text-slate-700 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">Failed to load statistics</p>
+                <button onclick="location.reload()" class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors">Try Again</button>
+            </div>
+        </div>
+
+        <div id="stats-content" class="hidden space-y-6">
+            <div class="animate-fade-in">
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Your Progress</h1>
+                <p class="text-slate-500 dark:text-slate-400">Keep up the great work!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 stagger-1 animate-slide-up">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col items-center">
+                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">Today's Goal</h2>
+                    <div class="relative w-48 h-48">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="8" class="text-slate-100 dark:text-slate-800" />
+                            <circle id="progress-ring-circle" cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" class="text-primary-500 transition-all duration-1000 ease-out" stroke-dasharray="282.7" stroke-dashoffset="282.7" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="progress-percentage" class="text-4xl font-bold text-slate-900 dark:text-white">0%</span>
+                            <span id="progress-text" class="text-sm text-slate-500 dark:text-slate-400 mt-1">0 / 30 min</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl p-6 shadow-lg shadow-primary-500/20 text-white flex flex-col justify-center items-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                    <svg class="w-12 h-12 mb-2 animate-pulse-soft" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm0-4c-.55 0-1-.45-1-1V8c0-.55.45-1 1-1s1 .45 1 1v4c0 .55-.45 1-1 1z"/></svg>
+                    <h3 class="text-5xl font-bold mb-1" id="streak-count">0</h3>
+                    <p class="text-primary-100 text-sm uppercase tracking-wider mb-3">Day Streak</p>
+                    <p class="text-center text-sm font-medium opacity-90" id="streak-message">Start your journey today!</p>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 stagger-2 animate-slide-up">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white">This Week</h2>
+                    <span class="text-xs text-slate-400 dark:text-slate-500">Last 7 days</span>
+                </div>
+                <div id="weekly-chart" class="h-48 w-full flex items-end justify-between gap-2 sm:gap-4 px-2 relative"></div>
+                <div class="flex justify-between mt-3 px-2 text-xs text-slate-400 dark:text-slate-500" id="weekly-labels"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-3 animate-slide-up">
+                <div class="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg"><svg class="w-5 h-5 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Total Today</span>
+                    </div>
+                    <p class="text-2xl font-bold text-slate-900 dark:text-white"><span id="stat-today">0</span> <span class="text-sm font-normal text-slate-400">min</span></p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="p-2 bg-accent-100 dark:bg-accent-900/30 rounded-lg"><svg class="w-5 h-5 text-accent-600 dark:text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Weekly Avg</span>
+                    </div>
+                    <p class="text-2xl font-bold text-slate-900 dark:text-white"><span id="stat-weekly-avg">0</span> <span class="text-sm font-normal text-slate-400">min</span></p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg"><svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg></div>
+                        <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Best Streak</span>
+                    </div>
+                    <p class="text-2xl font-bold text-slate-900 dark:text-white"><span id="stat-best">0</span> <span class="text-sm font-normal text-slate-400">days</span></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-6 mt-auto">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 text-center">
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-primary-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                <p class="text-sm font-medium text-slate-600 dark:text-slate-300">"Small steps lead to big changes."</p>
+            </div>
+            <p class="text-xs text-slate-400 dark:text-slate-500">© 2024 StandUp. Stay healthy, stay active.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script src="stats.js"></script>
+</body>
+</html>

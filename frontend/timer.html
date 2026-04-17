@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StandUp - Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4',
+                            400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e',
+                            800: '#115e59', 900: '#134e4a', 950: '#042f2e',
+                        },
+                        accent: {
+                            50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe',
+                            400: '#c084fc', 500: '#a855f7', 600: '#9333ea', 700: '#7e22ce',
+                            800: '#6b21a8', 900: '#581c87', 950: '#3b0764',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.02); opacity: 0.9; }
+        }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
+        .animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+        .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+        .stagger-2 { animation-delay: 0.1s; opacity: 0; }
+        .stagger-3 { animation-delay: 0.15s; opacity: 0; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white min-h-screen flex flex-col transition-colors duration-300">
+    <!-- Header -->
+    <header class="sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-400 to-accent-500 flex items-center justify-center shadow-lg shadow-primary-500/20">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold tracking-tight">StandUp</span>
+            </div>
+
+            <nav class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                <button data-page="timer" class="nav-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">Timer</button>
+                <button data-page="stats" class="nav-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">Stats</button>
+                <button data-page="settings" class="nav-btn px-4 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">Settings</button>
+            </nav>
+
+            <div class="flex items-center gap-2">
+                <button id="theme-toggle" class="p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary-500" aria-label="Toggle dark mode">
+                    <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+                <button id="mobile-menu-btn" class="md:hidden p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Nav -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-fade-in">
+            <div class="px-4 py-3 space-y-1">
+                <button data-page="timer" class="mobile-nav-btn w-full text-left px-3 py-2 text-sm font-medium rounded-lg bg-slate-100 dark:bg-slate-800 text-primary-600 dark:text-primary-400">Timer</button>
+                <button data-page="stats" class="mobile-nav-btn w-full text-left px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Stats</button>
+                <button data-page="settings" class="mobile-nav-btn w-full text-left px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Settings</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8 animate-fade-in">
+        <div class="w-full max-w-lg flex flex-col items-center gap-8">
+            
+            <!-- Status Indicator -->
+            <div id="status-indicator" class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 animate-slide-up stagger-1">
+                <span class="relative flex h-2.5 w-2.5">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-500"></span>
+                </span>
+                <span id="status-text">Ready to start</span>
+            </div>
+
+            <!-- Circular Timer -->
+            <div class="relative w-[60vw] h-[60vw] max-w-80 max-h-80 animate-slide-up stagger-2">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#2dd4bf" />
+                            <stop offset="100%" stop-color="#c084fc" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Track -->
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="4" class="text-slate-200 dark:text-slate-800" />
+                    <!-- Progress -->
+                    <circle id="timer-ring" cx="50" cy="50" r="45" fill="none" stroke="url(#timerGradient)" stroke-width="4" stroke-linecap="round"
+                        stroke-dasharray="282.7" stroke-dashoffset="0" class="transition-all duration-1000 ease-linear shadow-lg shadow-primary-500/20" />
+                </svg>
+                
+                <!-- Time Display -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="timer-display" class="text-5xl md:text-6xl font-mono font-bold tracking-tight text-slate-900 dark:text-white">30:00</span>
+                    <span id="timer-label" class="text-sm text-slate-500 dark:text-slate-400 mt-1">minutes</span>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="w-full flex flex-col items-center gap-6 animate-slide-up stagger-3">
+                
+                <!-- Interval Selector -->
+                <div class="flex flex-wrap justify-center gap-2" id="interval-chips">
+                    <button data-minutes="20" class="interval-chip px-4 py-2 text-sm font-medium rounded-xl border-2 border-transparent transition-all hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">20m</button>
+                    <button data-minutes="30" class="interval-chip active px-4 py-2 text-sm font-medium rounded-xl border-2 border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 shadow-sm transition-all">30m</button>
+                    <button data-minutes="45" class="interval-chip px-4 py-2 text-sm font-medium rounded-xl border-2 border-transparent transition-all hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">45m</button>
+                    <button data-minutes="60" class="interval-chip px-4 py-2 text-sm font-medium rounded-xl border-2 border-transparent transition-all hover:border-slate-300 dark:hover:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400">60m</button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-4">
+                    <button id="btn-toggle" class="flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold rounded-2xl shadow-lg shadow-primary-500/30 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-200">
+                        <svg id="icon-play" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <svg id="icon-pause" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span id="btn-toggle-text">Start</span>
+                    </button>
+                    
+                    <button id="btn-reset" class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-all active:scale-95" aria-label="Reset timer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Reminder Overlay Container -->
+    <div id="reminder-overlay" class="fixed inset-0 z-50 hidden pointer-events-none">
+        <div class="absolute inset-0 bg-amber-50/90 dark:bg-slate-900/95 backdrop-blur-sm transition-opacity duration-400 opacity-0" id="reminder-backdrop"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-8 text-center transform scale-95 opacity-0 transition-all duration-400" id="reminder-content">
+                <!-- Content injected by reminder.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg animate-slide-up">
+            <svg class="w-5 h-5 text-primary-400 dark:text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span class="text-sm font-medium" id="toast-message">Notification</span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="timer.js"></script>
+    <script src="reminder.js"></script>
+</body>
+</html>
